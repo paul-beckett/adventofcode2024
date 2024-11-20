@@ -1,2 +1,2 @@
 # adventofcode2024
-advent of code 2024 in Go
+This is a repo for advent of code 2024 solutions in Go
