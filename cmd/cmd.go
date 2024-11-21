@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"adventofcode2024/challenge/adventofcode2023"
+	"adventofcode2024/challenge/adventofcode2024"
 	"github.com/spf13/cobra"
 )
 
@@ -12,6 +13,7 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	adventofcode2023.AddYear(root)
+	adventofcode2024.AddYear(root)
 
 	return root
 }
