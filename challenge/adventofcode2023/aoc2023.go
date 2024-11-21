@@ -3,18 +3,27 @@ package adventofcode2023
 import (
 	"adventofcode2024/challenge/adventofcode2023/day01"
 	"adventofcode2024/challenge/adventofcode2023/day02"
+	"fmt"
 	"github.com/spf13/cobra"
 )
 
-func addDays(root *cobra.Command) {
-	day01.AddCommands(root)
-	day02.AddCommands(root)
+var subCommands = []*cobra.Command{
+	day01.NewCommand(),
+	day02.NewCommand(),
 }
 
-func AddYear(root *cobra.Command) {
+func NewCommand() *cobra.Command {
 	year := &cobra.Command{
 		Use: "2023",
+		Run: func(cmd *cobra.Command, args []string) {
+			for _, subCommand := range subCommands {
+				fmt.Printf("running %s:\n", subCommand.Name())
+				subCommand.Run(cmd, args)
+			}
+		},
 	}
-	addDays(year)
-	root.AddCommand(year)
+	for _, cmd := range subCommands {
+		year.AddCommand(cmd)
+	}
+	return year
 }

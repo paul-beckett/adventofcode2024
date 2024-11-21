@@ -6,8 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func AddCommands(root *cobra.Command) {
-	day := &cobra.Command{
+func NewCommand() *cobra.Command {
+	return &cobra.Command{
 		Use: "day01",
 		Run: func(cmd *cobra.Command, args []string) {
 			day01 := newDay01(file.ReadFile("./input/adventofcode2023/day01.txt"))
@@ -15,6 +15,4 @@ func AddCommands(root *cobra.Command) {
 			util.PrintResultAndTime("part2", day01.part2)
 		},
 	}
-
-	root.AddCommand(day)
 }

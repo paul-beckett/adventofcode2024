@@ -17,9 +17,17 @@ Input files are in ```/input/adventofcode2024/<day>.txt```
 The year command adds each day (e.g. ```/challenge/adventofcode2024/day01/day01_cmd.go```) as a subcommand.
 
 ## Usage example
+### Single solution
 ```go run main.go <year> <day>```
 
 ```go run main.go 2024 day01```
+### All solutions for a year
+```go run main.go <year>```
+
+```go run main.go 2024```
+
+### All solutions
+```go run main.go```
 
 ## adventofcode2023
 The first few days of 2023 were created in prep for 2024.
