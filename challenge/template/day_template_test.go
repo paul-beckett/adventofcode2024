@@ -1,4 +1,4 @@
-package day01
+package day_template
 
 import (
 	"strings"
@@ -6,21 +6,21 @@ import (
 )
 
 func TestPart1(t *testing.T) {
+	t.Skip("not implemented")
 	var testCases = []struct {
 		name string
 		data string
 		want int
 	}{
-		{"example 1",
-			`1abc2
-pqr3stu8vwx
-a1b2c3d4e5f
-treb7uchet`, 142},
+		{
+			name: "example 1",
+			data: ``,
+			want: -1},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			got := newDay01(strings.Split(testCase.data, "\n")).part1()
+			got := newDayTemplate(strings.Split(testCase.data, "\n")).part1()
 			if got != testCase.want {
 				t.Errorf("got %v, want %v", got, testCase.want)
 			}
@@ -29,24 +29,21 @@ treb7uchet`, 142},
 }
 
 func TestPart2(t *testing.T) {
+	t.Skip("not implemented")
 	var testCases = []struct {
 		name string
 		data string
 		want int
 	}{
-		{"example 1",
-			`two1nine
-eightwothree
-abcone2threexyz
-xtwone3four
-4nineeightseven2
-zoneight234
-7pqrstsixteen`, 281},
+		{
+			name: "example 1",
+			data: ``,
+			want: -1},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			got := newDay01(strings.Split(testCase.data, "\n")).part2()
+			got := newDayTemplate(strings.Split(testCase.data, "\n")).part2()
 			if got != testCase.want {
 				t.Errorf("got %v, want %v", got, testCase.want)
 			}

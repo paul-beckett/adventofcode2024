@@ -14,12 +14,12 @@ func newDay01(data []string) *Day01 {
 	return &Day01{data: data}
 }
 
-func (d *Day01) part1() any {
+func (d *Day01) part1() int {
 	calibrationValues := map_reduce.Map(d.data, calibrationValue)
 	return map_reduce.Sum(calibrationValues)
 }
 
-func (d *Day01) part2() any {
+func (d *Day01) part2() int {
 	wordValues := map[string]int{
 		"1":     1,
 		"2":     2,
