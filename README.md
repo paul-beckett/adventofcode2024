@@ -30,6 +30,8 @@ Note: if either of the following exist then the generator will fail:
 - ```/input/adventofcode<year>/<day>.txt```
 - ```/challenge/adventofcode<year>/<day>/```
 
+Add the generated command to the subcommands in the relevant ```/challenge/adventofcode<year>/aoc<year>.go``` file
+
 
 ## Usage example
 ### Single solution
