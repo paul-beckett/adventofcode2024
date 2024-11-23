@@ -1,4 +1,4 @@
-package day_template
+package {{.Day}}
 
 import (
 	"adventofcode2024/util"
@@ -8,9 +8,9 @@ import (
 
 func NewCommand() *cobra.Command {
 	return &cobra.Command{
-		Use: "dayTemplate",
+		Use: "{{.Day}}",
 		Run: func(cmd *cobra.Command, args []string) {
-			day := newDayTemplate(file.ReadFile("./input/day_template.txt"))
+			day := new{{.DayType}}(file.ReadFile("./input/adventofcode{{.Year}}/{{.Day}}.txt"))
 			util.PrintResultAndTime("part1", day.part1)
 			util.PrintResultAndTime("part2", day.part2)
 		},

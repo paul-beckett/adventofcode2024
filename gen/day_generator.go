@@ -1,0 +1,104 @@
+package main
+
+import (
+	"bufio"
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
+	"text/template"
+)
+
+type data struct {
+	Year    string
+	Day     string
+	DayType string
+}
+
+func main() {
+	yearFlag := flag.String("year", "2024", "The year to generate day for")
+	dayFlag := flag.String("day", "", "The days challenge")
+	flag.Parse()
+	year := *yearFlag
+	day := strings.ToLower(*dayFlag)
+	if day == "" {
+		log.Fatal("day is required")
+	}
+
+	if year == "" {
+		log.Fatal("year is required")
+	}
+
+	inputPath := filepath.Dir(fmt.Sprintf("./input/adventofcode%s/", year))
+	inputFile := filepath.Join(inputPath, fmt.Sprintf("%s.txt", day))
+	codePath := fmt.Sprintf("./challenge/adventofcode%s/%s", year, day)
+
+	fmt.Println(inputPath)
+	fmt.Println(inputFile)
+	fmt.Println(codePath)
+
+	_, err := os.Stat(inputFile)
+	if err == nil {
+		log.Fatalf("input file already exists! %v", inputFile)
+	}
+
+	_, err = os.Stat(codePath)
+	if err == nil {
+		log.Fatalf("code path already exists! %v", codePath)
+	}
+
+	log.Printf("attempting to create input file: %s", inputFile)
+	if err := os.MkdirAll(inputPath, 0770); err != nil {
+		log.Fatalf("failed to create input dir %v", err)
+	}
+	if _, err := os.Create(inputFile); err != nil {
+		log.Fatalf("failed to create input file %v", err)
+	}
+
+	log.Printf("attempting to create code files in: %s", filepath.Dir(codePath))
+	if err := os.MkdirAll(codePath, 0770); err != nil {
+		log.Fatalf("failed to create code dir %v", err)
+	}
+
+	d := &data{
+		Year:    year,
+		Day:     day,
+		DayType: strings.Title(day),
+	}
+
+	if err := createFromTemplate("day_cmd.tmpl", codePath, fmt.Sprintf("%s_cmd.go", day), d); err != nil {
+		log.Fatalf("error in create cmd from template %v", err)
+	}
+
+	if err := createFromTemplate("day.tmpl", codePath, fmt.Sprintf("%s.go", day), d); err != nil {
+		log.Fatalf("error in create day from template %v", err)
+	}
+
+	if err := createFromTemplate("day_test.tmpl", codePath, fmt.Sprintf("%s_test.go", day), d); err != nil {
+		log.Fatalf("error in create day_test from template %v", err)
+	}
+
+}
+
+func createFromTemplate(templateName string, path string, filename string, d *data) error {
+	templateFile := filepath.Join("./gen/", templateName)
+	outputFile := filepath.Join(path, filename)
+	log.Printf("creating %s from template %s", outputFile, templateFile)
+	dayTemplate := template.Must(template.New(templateName).ParseFiles(templateFile))
+
+	f, err := os.Create(outputFile)
+	if err != nil {
+		return err
+	}
+	w := bufio.NewWriter(f)
+	err = dayTemplate.Execute(w, d)
+	if err != nil {
+		return err
+	}
+	if err = w.Flush(); err != nil {
+		return err
+	}
+	return nil
+}

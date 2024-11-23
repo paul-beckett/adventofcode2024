@@ -17,17 +17,18 @@ Input files are in ```/input/adventofcode2024/<day>.txt```
 The year command adds each day (e.g. ```/challenge/adventofcode2024/day01/day01_cmd.go```) as a subcommand.
 
 ### Prep for a new day
-- Create a new directory inside the year. e.g. ```/challenge/adventofcode2024/day01```
-- Copy the files from ```/challenge/template``` into that directory
-- rename from ```<day_template>``` to ```day<number>``` e.g. ```day01.go```, ```day01_cmd.go```, and ```day01_test.go```
-- change the package in those files to be ```day<number>``` e.g. ```day01```
-- rename the ```newDayTemplate``` function in ```day01.go``` to ```newDay<number>```. e.g. ```newDay01```
-- Create a text file for input. e.g. ```/input/adventofcode2024/day01.txt``` and copy your input in here
-- Modify the  command e.g.```day01.go``` to point to the input file
-- Add the command to the ```subCommands``` in the year (e.g. ```/challenge/adventofcode2024/aoc2024.go```)
-- Remove the ```t.Skip``` line from the test
-- Tests are table driven so insert the appropriate example data into them
-- Solve the challenge!
+A code generator is in ```/gen/day_generator.go``` with templates as ```/gen/*.tmpl```.
+
+To use:
+```go run ./gen/day_generator.go -year=<year> -day=<day>```
+
+2024 is the default year so to create for day01 use:
+
+```go run ./gen/day_generator.go -day=day01```
+
+Note: if either of the following exist then the generator will fail:
+- ```/input/adventofcode<year>/<day>.txt```
+- ```/challenge/adventofcode<year>/<day>/```
 
 
 ## Usage example
