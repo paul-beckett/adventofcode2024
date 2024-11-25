@@ -1,6 +1,7 @@
 package main
 
 import (
+	"adventofcode2024/util/map_reduce"
 	"bufio"
 	"flag"
 	"fmt"
@@ -15,6 +16,7 @@ type data struct {
 	Year    string
 	Day     string
 	DayType string
+	Days    []string
 }
 
 func main() {
@@ -34,10 +36,7 @@ func main() {
 	inputPath := filepath.Dir(fmt.Sprintf("./input/adventofcode%s/", year))
 	inputFile := filepath.Join(inputPath, fmt.Sprintf("%s.txt", day))
 	codePath := fmt.Sprintf("./challenge/adventofcode%s/%s", year, day)
-
-	fmt.Println(inputPath)
-	fmt.Println(inputFile)
-	fmt.Println(codePath)
+	yearPath := fmt.Sprintf("./challenge/adventofcode%s/", year)
 
 	_, err := os.Stat(inputFile)
 	if err == nil {
@@ -62,10 +61,19 @@ func main() {
 		log.Fatalf("failed to create code dir %v", err)
 	}
 
+	entries, _ := os.ReadDir(yearPath)
+	challenges := map_reduce.Filter(entries, func(entry os.DirEntry) bool {
+		return entry.IsDir()
+	})
+	days := map_reduce.Map(challenges, func(entry os.DirEntry) string {
+		return entry.Name()
+	})
+
 	d := &data{
 		Year:    year,
 		Day:     day,
 		DayType: strings.Title(day),
+		Days:    days,
 	}
 
 	if err := createFromTemplate("day_cmd.tmpl", codePath, fmt.Sprintf("%s_cmd.go", day), d); err != nil {
@@ -78,6 +86,10 @@ func main() {
 
 	if err := createFromTemplate("day_test.tmpl", codePath, fmt.Sprintf("%s_test.go", day), d); err != nil {
 		log.Fatalf("error in create day_test from template %v", err)
+	}
+
+	if err := createFromTemplate("year_cmd.tmpl", yearPath, fmt.Sprintf("aoc%s.go", year), d); err != nil {
+		log.Fatalf("error in create year cmd from template %v", err)
 	}
 
 }

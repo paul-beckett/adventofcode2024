@@ -1,0 +1,31 @@
+package adventofcode{{.Year}}
+
+import (
+    {{- range .Days}}
+    "adventofcode2024/challenge/adventofcode{{$.Year}}/{{.}}"
+    {{- end}}
+	"fmt"
+	"github.com/spf13/cobra"
+)
+
+var subCommands = []*cobra.Command{
+    {{- range .Days}}
+    {{.}}.NewCommand(),
+    {{- end}}
+}
+
+func NewCommand() *cobra.Command {
+	year := &cobra.Command{
+		Use: "{{.Year}}",
+		Run: func(cmd *cobra.Command, args []string) {
+			for _, subCommand := range subCommands {
+				fmt.Printf("running %s:\n", subCommand.Name())
+				subCommand.Run(cmd, args)
+			}
+		},
+	}
+	for _, cmd := range subCommands {
+		year.AddCommand(cmd)
+	}
+	return year
+}

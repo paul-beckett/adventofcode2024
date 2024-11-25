@@ -26,12 +26,19 @@ To use:
 
 ```go run ./gen/day_generator.go -day=day01```
 
-Note: if either of the following exist then the generator will fail:
+This will generate:
+- ```/challenge/adventofcode2024/```
+    - ```day01/```
+        - ```day01.go```
+        - ```day01_cmd.go```
+        - ```day01_test.go```
+    - ```aoc2024.go```
+- ```/input/adventofcode2024```
+    - ```day01.txt```
+
+Note: if either of the following exist then the generator will exit without creating/overwriting anything:
 - ```/input/adventofcode<year>/<day>.txt```
 - ```/challenge/adventofcode<year>/<day>/```
-
-Add the generated command to the subcommands in the relevant ```/challenge/adventofcode<year>/aoc<year>.go``` file
-
 
 ## Usage example
 ### Single solution
