@@ -1,11 +1,14 @@
 package adventofcode2024
 
 import (
+	"adventofcode2024/challenge/adventofcode2024/day01"
 	"fmt"
 	"github.com/spf13/cobra"
 )
 
-var subCommands = []*cobra.Command{}
+var subCommands = []*cobra.Command{
+	day01.NewCommand(),
+}
 
 func NewCommand() *cobra.Command {
 	year := &cobra.Command{
