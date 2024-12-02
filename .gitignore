@@ -25,3 +25,6 @@ go.work.sum
 .env
 
 .idea/
+
+# aoc asks users not to include input files in repos
+/input/
