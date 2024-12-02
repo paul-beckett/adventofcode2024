@@ -25,6 +25,7 @@ To use:
 2024 is the default year so to create for day01 use:
 
 ```go run ./gen/day_generator.go -day=day01```
+```go run ./gen/pull_input.go```
 
 This will generate:
 - ```/challenge/adventofcode2024/```
@@ -36,9 +37,17 @@ This will generate:
 - ```/input/adventofcode2024```
     - ```day01.txt```
 
-Note: if either of the following exist then the generator will exit without creating/overwriting anything:
-- ```/input/adventofcode<year>/<day>.txt```
+Note: if the challenge directory exists then the generator will exit without creating/overwriting anything:
 - ```/challenge/adventofcode<year>/<day>/```
+
+### Pulling input
+AOC request that input files are not stored in repositories. See [here](https://adventofcode.com/2024/about)
+
+A little util to pull all of the input files can be used as
+```go run ./gen/pull_input.go```
+The ```./input``` is git ignored.
+
+This reads the session token from a file called ```./input/token```. You can find your token as the ```session``` from under cookies from the firefox dev tools.
 
 ## Usage example
 ### Single solution

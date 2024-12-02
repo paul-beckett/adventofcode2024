@@ -33,27 +33,12 @@ func main() {
 		log.Fatal("year is required")
 	}
 
-	inputPath := filepath.Dir(fmt.Sprintf("./input/adventofcode%s/", year))
-	inputFile := filepath.Join(inputPath, fmt.Sprintf("%s.txt", day))
 	codePath := fmt.Sprintf("./challenge/adventofcode%s/%s", year, day)
 	yearPath := fmt.Sprintf("./challenge/adventofcode%s/", year)
 
-	_, err := os.Stat(inputFile)
-	if err == nil {
-		log.Fatalf("input file already exists! %v", inputFile)
-	}
-
-	_, err = os.Stat(codePath)
+	_, err := os.Stat(codePath)
 	if err == nil {
 		log.Fatalf("code path already exists! %v", codePath)
-	}
-
-	log.Printf("attempting to create input file: %s", inputFile)
-	if err := os.MkdirAll(inputPath, 0770); err != nil {
-		log.Fatalf("failed to create input dir %v", err)
-	}
-	if _, err := os.Create(inputFile); err != nil {
-		log.Fatalf("failed to create input file %v", err)
 	}
 
 	log.Printf("attempting to create code files in: %s", filepath.Dir(codePath))
@@ -91,7 +76,6 @@ func main() {
 	if err := createFromTemplate("year_cmd.tmpl", yearPath, fmt.Sprintf("aoc%s.go", year), d); err != nil {
 		log.Fatalf("error in create year cmd from template %v", err)
 	}
-
 }
 
 func createFromTemplate(templateName string, path string, filename string, d *data) error {
