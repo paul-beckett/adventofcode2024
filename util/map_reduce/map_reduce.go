@@ -44,3 +44,22 @@ func All[A any](collection []A, f func(A) bool) bool {
 	}
 	return true
 }
+
+func ChunkBy[A any](collection []A, f func(A) bool) [][]A {
+	var chunks [][]A
+	var chunk []A
+	for _, x := range collection {
+		if f(x) {
+			if chunk != nil {
+				chunks = append(chunks, chunk)
+			}
+			chunk = nil
+		} else {
+			chunk = append(chunk, x)
+		}
+	}
+	if chunk != nil {
+		chunks = append(chunks, chunk)
+	}
+	return chunks
+}

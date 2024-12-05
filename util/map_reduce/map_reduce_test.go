@@ -1,6 +1,7 @@
 package map_reduce
 
 import (
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -87,5 +88,43 @@ func TestAll(t *testing.T) {
 			t.Errorf("got %v want %v given %v", got, want, nums)
 		}
 	})
+}
 
+func TestChunkBy(t *testing.T) {
+	var testCases = []struct {
+		name string
+		data []string
+		want [][]string
+	}{
+		{
+			name: "split in middle",
+			data: []string{"abc", "def", "", "ghi"},
+			want: [][]string{{"abc", "def"}, {"ghi"}},
+		},
+		{
+			name: "multiple splits",
+			data: []string{"abc", "", "def", "", "ghi"},
+			want: [][]string{{"abc"}, {"def"}, {"ghi"}},
+		},
+		{
+			name: "split at start",
+			data: []string{"", "abc", "def", "ghi"},
+			want: [][]string{{"abc", "def", "ghi"}},
+		},
+		{
+			name: "split at end",
+			data: []string{"abc", "def", "ghi", ""},
+			want: [][]string{{"abc", "def", "ghi"}},
+		},
+	}
+	matchWhiteSpace := func(s string) bool { return strings.TrimSpace(s) == "" }
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := ChunkBy(testCase.data, matchWhiteSpace)
+
+			if !reflect.DeepEqual(got, testCase.want) {
+				t.Errorf("got %v, want %v", got, testCase.want)
+			}
+		})
+	}
 }
