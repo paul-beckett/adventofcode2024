@@ -76,19 +76,22 @@ func newPathSegment(position graph.Vector2, direction direction.Direction) *path
 // returns the path and true if the graph is exited, false if a loop was found
 func (d *Day06) walkPath(startPos graph.Vector2, startDir direction.Direction, v visitedPath) ([]pathSegment, bool) {
 	path := []pathSegment{*newPathSegment(startPos, startDir)}
+	v.visit(startPos, startDir)
 	currentPos := startPos
 	currentDir := startDir
 	for {
-		v.visit(currentPos, currentDir)
 		nextPosition := *currentPos.Add(currentDir.Delta())
+		for d.isWall(nextPosition) {
+			currentDir = currentDir.Clockwise()
+			nextPosition = *currentPos.Add(currentDir.Delta())
+		}
 
 		if !d.isInMappedArea(nextPosition) {
 			return path, true
 		} else if v.alreadyVisited(nextPosition, currentDir) {
 			return path, false
-		} else if d.isWall(nextPosition) {
-			currentDir = currentDir.Clockwise()
 		} else {
+			v.visit(nextPosition, currentDir)
 			path = append(path, *newPathSegment(nextPosition, currentDir))
 			currentPos = nextPosition
 		}
@@ -109,7 +112,7 @@ func (d *Day06) part2() int {
 	path, _ := d.walkPath(d.start, direction.Up, maps.Clone(visited))
 
 	loopPositions := make(map[graph.Vector2]bool)
-	for i := 0; i < len(path)-1; i++ {
+	for i := 1; i < len(path)-1; i++ {
 		obstacle := path[i+1].position
 		if obstacle == d.start || visited[obstacle] != nil {
 			continue
