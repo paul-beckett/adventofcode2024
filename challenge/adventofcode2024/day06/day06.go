@@ -3,25 +3,24 @@ package day06
 import (
 	"adventofcode2024/util/direction"
 	"adventofcode2024/util/graph"
-	"maps"
 )
 
 type Day06 struct {
 	maxX, minX, maxY, minY int
 	obstacles              map[graph.Vector2]bool
-	start                  graph.Vector2
+	start                  pathSegment
 }
 
 func newDay06(data []string) *Day06 {
 	obstacles := make(map[graph.Vector2]bool)
-	var start graph.Vector2
+	var startPosition graph.Vector2
 	for y, line := range data {
 		for x, c := range line {
 			switch c {
 			case '#':
 				obstacles[*graph.NewVector2(x, y)] = true
 			case '^':
-				start = *graph.NewVector2(x, y)
+				startPosition = *graph.NewVector2(x, y)
 			}
 		}
 	}
@@ -31,27 +30,8 @@ func newDay06(data []string) *Day06 {
 		minX:      0,
 		maxX:      len(data[0]) - 1,
 		obstacles: obstacles,
-		start:     start,
+		start:     *newPathSegment(startPosition, direction.Up),
 	}
-}
-
-type visitedPath map[graph.Vector2]map[direction.Direction]bool
-
-func (v *visitedPath) visit(pos graph.Vector2, d direction.Direction) {
-	dirsAtPosition, ok := (*v)[pos]
-	if !ok {
-		dirsAtPosition = make(map[direction.Direction]bool)
-		(*v)[pos] = dirsAtPosition
-	}
-	dirsAtPosition[d] = true
-}
-
-func (v *visitedPath) alreadyVisited(pos graph.Vector2, d direction.Direction) bool {
-	dirsAtPosition, ok := (*v)[pos]
-	if !ok {
-		return false
-	}
-	return dirsAtPosition[d]
 }
 
 func (d *Day06) isInMappedArea(v graph.Vector2) bool {
@@ -74,32 +54,39 @@ func newPathSegment(position graph.Vector2, direction direction.Direction) *path
 // walks the path until it exits the graph or a loop is found returns the number
 //
 // returns the path and true if the graph is exited, false if a loop was found
-func (d *Day06) walkPath(startPos graph.Vector2, startDir direction.Direction, v visitedPath) ([]pathSegment, bool) {
-	path := []pathSegment{*newPathSegment(startPos, startDir)}
-	v.visit(startPos, startDir)
-	currentPos := startPos
-	currentDir := startDir
-	for {
-		nextPosition := *currentPos.Add(currentDir.Delta())
-		for d.isWall(nextPosition) {
-			currentDir = currentDir.Clockwise()
-			nextPosition = *currentPos.Add(currentDir.Delta())
-		}
+func (d *Day06) walkPath(start pathSegment) ([]pathSegment, bool) {
+	path := []pathSegment{start}
 
-		if !d.isInMappedArea(nextPosition) {
+	visited := make(map[pathSegment]bool)
+	visited[start] = true
+	//for _, p := range pathTo {
+	//	visited[p] = true
+	//}
+
+	current := start
+	for {
+		nextDir := current.direction
+		nextPosition := *current.position.Add(nextDir.Delta())
+		for d.isWall(nextPosition) {
+			nextDir = nextDir.Clockwise()
+			nextPosition = *current.position.Add(nextDir.Delta())
+		}
+		next := *newPathSegment(nextPosition, nextDir)
+
+		if !d.isInMappedArea(next.position) {
 			return path, true
-		} else if v.alreadyVisited(nextPosition, currentDir) {
+		} else if visited[next] {
 			return path, false
 		} else {
-			v.visit(nextPosition, currentDir)
-			path = append(path, *newPathSegment(nextPosition, currentDir))
-			currentPos = nextPosition
+			visited[next] = true
+			path = append(path, next)
+			current = next
 		}
 	}
 }
 
 func (d *Day06) part1() int {
-	path, _ := d.walkPath(d.start, direction.Up, make(visitedPath))
+	path, _ := d.walkPath(d.start)
 	visited := make(map[graph.Vector2]bool)
 	for _, p := range path {
 		visited[p.position] = true
@@ -108,23 +95,25 @@ func (d *Day06) part1() int {
 }
 
 func (d *Day06) part2() int {
-	visited := make(visitedPath)
-	path, _ := d.walkPath(d.start, direction.Up, maps.Clone(visited))
+	path, _ := d.walkPath(d.start)
 
-	loopPositions := make(map[graph.Vector2]bool)
-	for i := 1; i < len(path)-1; i++ {
-		obstacle := path[i+1].position
-		if obstacle == d.start || visited[obstacle] != nil {
+	startPositions := make(map[graph.Vector2]bool)
+	addedObstacles := make(map[graph.Vector2]bool)
+	for i := 0; i < len(path)-1; i++ {
+		startFrom := path[i]
+		startPositions[startFrom.position] = true
+		obstacle := path[i+1]
+		if startPositions[obstacle.position] {
 			continue
 		}
 
-		d.obstacles[obstacle] = true
-		_, exit := d.walkPath(d.start, direction.Up, maps.Clone(visited))
+		d.obstacles[obstacle.position] = true
+		_, exit := d.walkPath(startFrom)
 		if !exit {
-			loopPositions[obstacle] = true
+			addedObstacles[obstacle.position] = true
 		}
-		delete(d.obstacles, obstacle)
+		delete(d.obstacles, obstacle.position)
 
 	}
-	return len(loopPositions)
+	return len(addedObstacles)
 }
