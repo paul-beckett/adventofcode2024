@@ -3,14 +3,36 @@ package day06
 import (
 	"adventofcode2024/util/direction"
 	"adventofcode2024/util/graph"
+	"maps"
 )
 
 type Day06 struct {
-	data []string
+	maxX, minX, maxY, minY int
+	obstacles              map[graph.Vector2]bool
+	start                  graph.Vector2
 }
 
 func newDay06(data []string) *Day06 {
-	return &Day06{data: data}
+	obstacles := make(map[graph.Vector2]bool)
+	var start graph.Vector2
+	for y, line := range data {
+		for x, c := range line {
+			switch c {
+			case '#':
+				obstacles[*graph.NewVector2(x, y)] = true
+			case '^':
+				start = *graph.NewVector2(x, y)
+			}
+		}
+	}
+	return &Day06{
+		minY:      0,
+		maxY:      len(data) - 1,
+		minX:      0,
+		maxX:      len(data[0]) - 1,
+		obstacles: obstacles,
+		start:     start,
+	}
 }
 
 type visitedPath map[graph.Vector2]map[direction.Direction]bool
@@ -32,23 +54,12 @@ func (v *visitedPath) alreadyVisited(pos graph.Vector2, d direction.Direction) b
 	return dirsAtPosition[d]
 }
 
-func (d *Day06) findStart() *graph.Vector2 {
-	for y, row := range d.data {
-		for x, v := range row {
-			if v == '^' {
-				return graph.NewVector2(x, y)
-			}
-		}
-	}
-	panic("start not found")
-}
-
 func (d *Day06) isInMappedArea(v graph.Vector2) bool {
-	return v.Y >= 0 && v.Y < len(d.data) && v.X >= 0 && v.X < len(d.data[v.Y])
+	return v.Y >= d.minY && v.Y <= d.maxY && v.X >= d.minX && v.X <= d.maxX
 }
 
 func (d *Day06) isWall(v graph.Vector2) bool {
-	return d.data[v.Y][v.X] == '#'
+	return d.obstacles[v]
 }
 
 type pathSegment struct {
@@ -63,28 +74,29 @@ func newPathSegment(position graph.Vector2, direction direction.Direction) *path
 // walks the path until it exits the graph or a loop is found returns the number
 //
 // returns the path and true if the graph is exited, false if a loop was found
-func (d *Day06) walkPath(position graph.Vector2, direction direction.Direction, v visitedPath) ([]pathSegment, bool) {
-	var path []pathSegment
+func (d *Day06) walkPath(startPos graph.Vector2, startDir direction.Direction, v visitedPath) ([]pathSegment, bool) {
+	path := []pathSegment{*newPathSegment(startPos, startDir)}
+	currentPos := startPos
+	currentDir := startDir
 	for {
-		if v.alreadyVisited(position, direction) {
-			return path, false
-		}
-		v.visit(position, direction)
-		path = append(path, *newPathSegment(position, direction))
-		nextPosition := *position.Add(direction.Delta())
+		v.visit(currentPos, currentDir)
+		nextPosition := *currentPos.Add(currentDir.Delta())
 
 		if !d.isInMappedArea(nextPosition) {
 			return path, true
+		} else if v.alreadyVisited(nextPosition, currentDir) {
+			return path, false
 		} else if d.isWall(nextPosition) {
-			direction = direction.Clockwise()
+			currentDir = currentDir.Clockwise()
 		} else {
-			position = nextPosition
+			path = append(path, *newPathSegment(nextPosition, currentDir))
+			currentPos = nextPosition
 		}
 	}
 }
 
 func (d *Day06) part1() int {
-	path, _ := d.walkPath(*d.findStart(), direction.Up, make(visitedPath))
+	path, _ := d.walkPath(d.start, direction.Up, make(visitedPath))
 	visited := make(map[graph.Vector2]bool)
 	for _, p := range path {
 		visited[p.position] = true
@@ -93,19 +105,23 @@ func (d *Day06) part1() int {
 }
 
 func (d *Day06) part2() int {
-	start := d.findStart()
-	path, _ := d.walkPath(*start, direction.Up, make(visitedPath))
+	visited := make(visitedPath)
+	path, _ := d.walkPath(d.start, direction.Up, maps.Clone(visited))
+
 	loopPositions := make(map[graph.Vector2]bool)
-	for _, p := range path {
-		if p.position != *start {
-			row := d.data[p.position.Y]
-			d.data[p.position.Y] = row[:p.position.X] + "#" + row[p.position.X+1:]
-			_, exit := d.walkPath(*start, direction.Up, make(visitedPath))
-			if !exit {
-				loopPositions[p.position] = true
-			}
-			d.data[p.position.Y] = row
+	for i := 0; i < len(path)-1; i++ {
+		obstacle := path[i+1].position
+		if obstacle == d.start || visited[obstacle] != nil {
+			continue
 		}
+
+		d.obstacles[obstacle] = true
+		_, exit := d.walkPath(d.start, direction.Up, maps.Clone(visited))
+		if !exit {
+			loopPositions[obstacle] = true
+		}
+		delete(d.obstacles, obstacle)
+
 	}
 	return len(loopPositions)
 }
