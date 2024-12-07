@@ -22,6 +22,8 @@ func newCalibration(t int, e []int) *calibration {
 	}
 }
 
+type operator func(int, int) int
+
 func newDay07(data []string) *Day07 {
 	var calibrations []calibration
 	for _, row := range data {
@@ -46,10 +48,10 @@ var (
 	}
 )
 
-func (d *Day07) part1() int {
+func (d *Day07) calibrationSum(operators []operator) int {
 	calibrationSum := 0
 	for _, c := range d.calibrations {
-		if isPossibleEquation(c, []func(int, int) int{add, multiply}) {
+		if c.isPossible(c.equation[0], 1, operators) {
 			calibrationSum += c.testValue
 		}
 	}
@@ -57,34 +59,24 @@ func (d *Day07) part1() int {
 	return calibrationSum
 }
 
-func isPossibleEquation(c calibration, operations []func(int, int) int) bool {
-	possibles := make([]map[int]bool, len(c.equation))
-	possibles[0] = map[int]bool{c.equation[0]: true}
-	for i := 1; i < len(c.equation); i++ {
-		next := make(map[int]bool)
-		for n := range possibles[i-1] {
-			for _, o := range operations {
-				res := o(n, c.equation[i])
-				if res <= c.testValue {
-					next[res] = true
-				}
-			}
-		}
-		if len(next) == 0 {
-			return false
-		}
-		possibles[i] = next
+func (c *calibration) isPossible(total int, i int, operators []operator) bool {
+	if i >= len(c.equation) {
+		return total == c.testValue
 	}
-	return possibles[len(possibles)-1][c.testValue]
+
+	for _, o := range operators {
+		possible := c.isPossible(o(total, c.equation[i]), i+1, operators)
+		if possible {
+			return true
+		}
+	}
+	return false
+}
+
+func (d *Day07) part1() int {
+	return d.calibrationSum([]operator{add, multiply})
 }
 
 func (d *Day07) part2() int {
-	calibrationSum := 0
-	for _, c := range d.calibrations {
-		if isPossibleEquation(c, []func(int, int) int{add, multiply, concat}) {
-			calibrationSum += c.testValue
-		}
-	}
-
-	return calibrationSum
+	return d.calibrationSum([]operator{add, multiply, concat})
 }
