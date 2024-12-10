@@ -72,3 +72,38 @@ func (d *Day10) part1() int {
 func (d *Day10) part2() int {
 	return d.getScore(true)
 }
+
+// An alternative solution for part2 using a bit of dp where we keep the score for each height to get to 9.
+// Any height 9 fields score is 1
+// Any height n field is the sum of all reachable height n+1 fields
+// Then simply sum the scores from the height 0 fields
+func (d *Day10) part2Alternate() int {
+	byHeight := make([]map[graph.Vector2]bool, 10)
+	for i := range byHeight {
+		byHeight[i] = make(map[graph.Vector2]bool)
+	}
+	for pos, height := range d.topo {
+		byHeight[height][pos] = true
+	}
+
+	scores := make(map[graph.Vector2]int)
+	for pos := range byHeight[len(byHeight)-1] {
+		scores[pos] = 1
+	}
+
+	for i := len(byHeight) - 2; i >= 0; i-- {
+		for pos := range byHeight[i] {
+			for _, dir := range directions {
+				next := *pos.Add(dir.Delta())
+				if byHeight[i+1][next] {
+					scores[pos] += scores[next]
+				}
+			}
+		}
+	}
+	total := 0
+	for trailhead := range byHeight[0] {
+		total += scores[trailhead]
+	}
+	return total
+}
