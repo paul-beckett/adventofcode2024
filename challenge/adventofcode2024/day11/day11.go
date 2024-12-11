@@ -50,6 +50,14 @@ func (sc stoneCounts) blinkN(n int) stoneCounts {
 	return current
 }
 
+func (sc stoneCounts) count() int {
+	total := 0
+	for _, count := range sc {
+		total += count
+	}
+	return total
+}
+
 func (s stone) digitCount() int {
 	return int(math.Log10(float64(s))) + 1
 }
@@ -66,19 +74,9 @@ func (s stone) split() (stone, stone) {
 }
 
 func (d *Day11) part1() int {
-	sc := d.stones.blinkN(25)
-	total := 0
-	for _, count := range sc {
-		total += count
-	}
-	return total
+	return d.stones.blinkN(25).count()
 }
 
 func (d *Day11) part2() int {
-	sc := d.stones.blinkN(75)
-	total := 0
-	for _, count := range sc {
-		total += count
-	}
-	return total
+	return d.stones.blinkN(75).count()
 }
