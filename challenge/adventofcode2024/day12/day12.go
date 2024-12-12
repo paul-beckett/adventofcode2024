@@ -97,17 +97,12 @@ func (d *Day12) expandRegion(plot graph.Vector2) region {
 	return r
 }
 
-func fencePrice(r region) int {
-	return r.area() * r.perimeter()
-}
-func discountedPrice(r region) int {
-	return r.area() * r.sides()
-}
-
 func (d *Day12) part1() int {
+	fencePrice := func(r region) int { return r.area() * r.perimeter() }
 	return map_reduce.SumFunc(d.findRegions(), fencePrice)
 }
 
 func (d *Day12) part2() int {
+	discountedPrice := func(r region) int { return r.area() * r.sides() }
 	return map_reduce.SumFunc(d.findRegions(), discountedPrice)
 }
