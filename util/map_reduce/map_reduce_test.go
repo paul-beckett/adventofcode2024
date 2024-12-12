@@ -34,6 +34,20 @@ func TestSum(t *testing.T) {
 	})
 }
 
+func TestSumFunc(t *testing.T) {
+	stringLengthFunc := func(s string) int {
+		return len(s)
+	}
+	t.Run("sum string length", func(t *testing.T) {
+		strings := []string{"sum", "of", "string", "lengths"}
+		got := SumFunc(strings, stringLengthFunc)
+		want := 18
+		if got != want {
+			t.Errorf("got %d want %d given, %v", got, want, strings)
+		}
+	})
+}
+
 func TestMap(t *testing.T) {
 	t.Run("map to uppercase string", func(t *testing.T) {
 		toUpper := func(upper string) string { return strings.ToUpper(upper) }

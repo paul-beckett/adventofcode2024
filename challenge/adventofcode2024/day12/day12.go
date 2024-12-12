@@ -3,6 +3,8 @@ package day12
 import (
 	"adventofcode2024/util/direction"
 	"adventofcode2024/util/graph"
+	"adventofcode2024/util/map_reduce"
+	"maps"
 )
 
 type Day12 struct {
@@ -17,7 +19,6 @@ func newDay12(data []string) *Day12 {
 		}
 	}
 	return &Day12{garden: garden}
-
 }
 
 type region map[graph.Vector2]bool
@@ -52,7 +53,9 @@ func (r *region) sides() int {
 			lInGrid := (*r)[*gp.Add(check[0].Delta())]
 			rInGrid := (*r)[*gp.Add(check[1].Delta())]
 			diagInGrid := (*r)[*gp.Add(*check[0].Delta().Add(check[1].Delta()))]
-			if (!lInGrid && !rInGrid) || (lInGrid && rInGrid && !diagInGrid) {
+			isObtuseCorner := !lInGrid && !rInGrid
+			isAcuteCorner := lInGrid && rInGrid && !diagInGrid
+			if isObtuseCorner || isAcuteCorner {
 				corners++
 			}
 		}
@@ -67,44 +70,44 @@ func (d *Day12) findRegions() []region {
 		if visited[plot] {
 			continue
 		}
-		r := make(region)
-		queue := []graph.Vector2{plot}
-		for len(queue) > 0 {
-			current := queue[0]
-			queue = queue[1:]
-			if visited[current] {
-				continue
-			}
-			visited[current] = true
-			r[current] = true
-			for _, dir := range direction.Cardinals {
-				next := *current.Add(dir.Delta())
-				if !visited[next] && d.garden[current] == d.garden[next] {
-					queue = append(queue, next)
-				}
-			}
-		}
+		r := d.expandRegion(plot)
+		maps.Copy(visited, r)
 		regions = append(regions, r)
 	}
 	return regions
 }
 
-func (d *Day12) cost(f func(r region) int) int {
-	totalCost := 0
-	for _, r := range d.findRegions() {
-		totalCost += f(r)
+func (d *Day12) expandRegion(plot graph.Vector2) region {
+	r := make(region)
+	queue := []graph.Vector2{plot}
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		if r[current] {
+			continue
+		}
+		r[current] = true
+		for _, dir := range direction.Cardinals {
+			next := *current.Add(dir.Delta())
+			if !r[next] && d.garden[current] == d.garden[next] {
+				queue = append(queue, next)
+			}
+		}
 	}
-	return totalCost
+	return r
+}
+
+func fencePrice(r region) int {
+	return r.area() * r.perimeter()
+}
+func discountedPrice(r region) int {
+	return r.area() * r.sides()
 }
 
 func (d *Day12) part1() int {
-	return d.cost(func(r region) int {
-		return r.area() * r.perimeter()
-	})
+	return map_reduce.SumFunc(d.findRegions(), fencePrice)
 }
 
 func (d *Day12) part2() int {
-	return d.cost(func(r region) int {
-		return r.area() * r.sides()
-	})
+	return map_reduce.SumFunc(d.findRegions(), discountedPrice)
 }

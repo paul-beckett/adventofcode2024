@@ -22,8 +22,13 @@ func Map[A, B any](collection []A, f func(A) B) []B {
 }
 
 func Sum[A Number](numbers []A) A {
-	add := func(acc, x A) A { return acc + x }
-	return Reduce(numbers, add, 0)
+	add := func(x A) A { return x }
+	return SumFunc(numbers, add)
+}
+
+func SumFunc[A any, B Number](collection []A, f func(A) B) B {
+	add := func(acc B, x A) B { return acc + f(x) }
+	return Reduce(collection, add, 0)
 }
 
 func Filter[A any](collection []A, f func(A) bool) []A {
