@@ -174,7 +174,7 @@ func (b *bigBox) gpsScore() int {
 	return b.l.gpsScore()
 }
 
-func moveRobotAlt(robot graph.Vector2, directions []direction.Direction, wh warehouse) {
+func moveRobot(robot graph.Vector2, directions []direction.Direction, wh warehouse) {
 	current := robot
 	for _, d := range directions {
 		next := *current.Add(d.Delta())
@@ -188,7 +188,7 @@ func moveRobotAlt(robot graph.Vector2, directions []direction.Direction, wh ware
 	}
 }
 
-func sumGpsAlt(wh warehouse) int {
+func sumGps(wh warehouse) int {
 	total := 0
 	visited := make(map[obstacle]bool)
 	for _, t := range wh {
@@ -202,15 +202,15 @@ func sumGpsAlt(wh warehouse) int {
 
 func (d *Day15) part1() int {
 	wh := maps.Clone(d.warehouse)
-	moveRobotAlt(d.robotStart, d.directions, wh)
-	return sumGpsAlt(wh)
+	moveRobot(d.robotStart, d.directions, wh)
+	return sumGps(wh)
 }
 
 func (d *Day15) part2() int {
 	wh := biggerWarehouse(d.warehouse)
 	newStart := *graph.NewVector2(d.robotStart.X*2, d.robotStart.Y)
-	moveRobotAlt(newStart, d.directions, wh)
-	return sumGpsAlt(wh)
+	moveRobot(newStart, d.directions, wh)
+	return sumGps(wh)
 }
 
 func biggerWarehouse(wh warehouse) warehouse {
