@@ -3,20 +3,19 @@ package day15
 import (
 	"adventofcode2024/util/direction"
 	"adventofcode2024/util/graph"
+	"fmt"
 	"maps"
 	"strings"
 )
 
 type Day15 struct {
-	boxes      map[graph.Vector2]box
-	walls      map[graph.Vector2]bool
-	directions []direction.Direction
+	warehouse  warehouse
 	robotStart graph.Vector2
+	directions []direction.Direction
 }
 
 func newDay15(data []string) *Day15 {
-	boxes := make(map[graph.Vector2]box)
-	walls := make(map[graph.Vector2]bool)
+	wh := make(warehouse)
 
 	var robotStart graph.Vector2
 
@@ -26,14 +25,14 @@ func newDay15(data []string) *Day15 {
 			break
 		}
 		for x, c := range data[i] {
+			pos := *graph.NewVector2(x, i)
 			switch c {
 			case '#':
-				walls[*graph.NewVector2(x, i)] = true
+				wh[pos] = newWall(pos)
 			case 'O':
-				b := *graph.NewVector2(x, i)
-				boxes[b] = box{b}
+				wh[pos] = newBox(pos)
 			case '@':
-				robotStart = *graph.NewVector2(x, i)
+				robotStart = pos
 			default:
 				continue
 			}
@@ -57,114 +56,177 @@ func newDay15(data []string) *Day15 {
 	}
 
 	return &Day15{
-		boxes:      boxes,
-		walls:      walls,
-		directions: directions,
+		warehouse:  wh,
 		robotStart: robotStart,
+		directions: directions,
 	}
 }
 
-type box []graph.Vector2
+type warehouse map[graph.Vector2]obstacle
 
-func canMove(pos graph.Vector2, dir direction.Direction, boxes map[graph.Vector2]box, walls map[graph.Vector2]bool) bool {
-	next := *pos.Add(dir.Delta())
-	if walls[next] {
-		return false
-	}
-	for _, b := range boxes[next] {
-		if b == pos {
-			continue
-		}
-		if !canMove(b, dir, boxes, walls) {
-			return false
-		}
-	}
-	return true
+type obstacle interface {
+	canMove(dir direction.Direction, w warehouse) bool
+	move(dir direction.Direction, w warehouse)
+	gpsScore() int
 }
 
-func moveBox(b box, dir direction.Direction, boxes map[graph.Vector2]box) {
-	var pushes []graph.Vector2
+type wall struct {
+	position graph.Vector2
+}
+
+func newWall(position graph.Vector2) *wall {
+	return &wall{
+		position: position,
+	}
+}
+
+func (w *wall) canMove(_ direction.Direction, _ warehouse) bool {
+	return false
+}
+func (w *wall) move(_ direction.Direction, _ warehouse) {
+	panic(fmt.Sprintf("cannot move wall %v", w))
+}
+
+func (w *wall) gpsScore() int { return 0 }
+
+type box struct {
+	position graph.Vector2
+}
+
+func newBox(position graph.Vector2) *box {
+	return &box{
+		position: position,
+	}
+}
+
+func (b *box) canMove(dir direction.Direction, wh warehouse) bool {
+	next := *b.position.Add(dir.Delta())
+	obstacle, hasObstacle := wh[next]
+	if !hasObstacle {
+		return true
+	} else {
+		return obstacle.canMove(dir, wh)
+	}
+}
+func (b *box) move(dir direction.Direction, wh warehouse) {
+	next := *b.position.Add(dir.Delta())
+	obstacle, hasObstacle := wh[next]
+	if hasObstacle {
+		obstacle.move(dir, wh)
+	}
+	delete(wh, b.position)
+	b.position = next
+	wh[next] = b
+}
+
+func (b *box) gpsScore() int {
+	return b.position.Y*100 + b.position.X
+}
+
+type bigBox struct {
+	l, r box
+}
+
+func newBigBox(position graph.Vector2) *bigBox {
+	return &bigBox{
+		l: *newBox(position),
+		r: *newBox(*position.Add(direction.Right.Delta())),
+	}
+}
+
+func (b *bigBox) canMove(dir direction.Direction, wh warehouse) bool {
 	switch dir {
-	case direction.Up, direction.Down:
-		for _, pos := range b {
-			pushes = append(pushes, *pos.Add(dir.Delta()))
-		}
 	case direction.Left:
-		pushes = append(pushes, *b[0].Add(dir.Delta()))
+		return b.l.canMove(dir, wh)
 	case direction.Right:
-		pushes = append(pushes, *b[len(b)-1].Add(dir.Delta()))
-	}
-	for _, p := range pushes {
-		b := boxes[p]
-		if len(b) > 0 {
-			moveBox(b, dir, boxes)
-		}
-	}
-	var newBox box
-	for _, pos := range b {
-		newBox = append(newBox, *pos.Add(dir.Delta()))
-		delete(boxes, pos)
-	}
-	for _, pos := range newBox {
-		boxes[pos] = newBox
+		return b.r.canMove(dir, wh)
+	default:
+		return b.l.canMove(dir, wh) && b.r.canMove(dir, wh)
 	}
 }
 
-func moveRobot(robot graph.Vector2, directions []direction.Direction, boxes map[graph.Vector2]box, walls map[graph.Vector2]bool) {
+func (b *bigBox) move(dir direction.Direction, wh warehouse) {
+	var moveablePositions []graph.Vector2
+	switch dir {
+	case direction.Left:
+		moveablePositions = append(moveablePositions, *b.l.position.Add(dir.Delta()))
+	case direction.Right:
+		moveablePositions = append(moveablePositions, *b.r.position.Add(dir.Delta()))
+	default:
+		moveablePositions = append(moveablePositions, *b.l.position.Add(dir.Delta()))
+		moveablePositions = append(moveablePositions, *b.r.position.Add(dir.Delta()))
+	}
+	for _, pos := range moveablePositions {
+		obstacle, hasObstacle := wh[pos]
+		if hasObstacle {
+			obstacle.move(dir, wh)
+		}
+	}
+	delete(wh, b.l.position)
+	delete(wh, b.r.position)
+	b.l.position = *b.l.position.Add(dir.Delta())
+	b.r.position = *b.r.position.Add(dir.Delta())
+	wh[b.l.position] = b
+	wh[b.r.position] = b
+}
+
+func (b *bigBox) gpsScore() int {
+	return b.l.gpsScore()
+}
+
+func moveRobotAlt(robot graph.Vector2, directions []direction.Direction, wh warehouse) {
 	current := robot
-	for _, dir := range directions {
-		if canMove(current, dir, boxes, walls) {
-			next := *current.Add(dir.Delta())
-			b := boxes[next]
-			if b != nil {
-				moveBox(b, dir, boxes)
+	for _, d := range directions {
+		next := *current.Add(d.Delta())
+		obstacle, hasObstacle := wh[next]
+		if !hasObstacle || obstacle.canMove(d, wh) {
+			if hasObstacle {
+				obstacle.move(d, wh)
 			}
 			current = next
 		}
 	}
 }
 
-func sumGps(boxes map[graph.Vector2]box) int {
+func sumGpsAlt(wh warehouse) int {
 	total := 0
-	visited := make(map[graph.Vector2]bool)
-	for p, bo := range boxes {
-		if !visited[p] {
-			for _, b := range bo {
-				visited[b] = true
-			}
-			total += bo[0].Y * 100
-			total += bo[0].X
+	visited := make(map[obstacle]bool)
+	for _, t := range wh {
+		if !visited[t] {
+			total += t.gpsScore()
+			visited[t] = true
 		}
 	}
 	return total
 }
 
 func (d *Day15) part1() int {
-	boxes := maps.Clone(d.boxes)
-	moveRobot(d.robotStart, d.directions, boxes, d.walls)
-	return sumGps(boxes)
+	wh := maps.Clone(d.warehouse)
+	moveRobotAlt(d.robotStart, d.directions, wh)
+	return sumGpsAlt(wh)
 }
 
 func (d *Day15) part2() int {
-	wideBoxes := make(map[graph.Vector2]box)
-	for _, b := range d.boxes {
-		var newBox box
-		for _, pos := range b {
-			pos.X = pos.X * 2
-			newBox = append(newBox, pos)
-			newBox = append(newBox, *pos.Add(direction.Right.Delta()))
-		}
-		for _, pos := range newBox {
-			wideBoxes[pos] = newBox
-		}
-	}
-	wideWalls := make(map[graph.Vector2]bool)
-	for pos := range d.walls {
-		pos.X = pos.X * 2
-		wideWalls[pos] = true
-		wideWalls[*pos.Add(direction.Right.Delta())] = true
-	}
+	wh := biggerWarehouse(d.warehouse)
 	newStart := *graph.NewVector2(d.robotStart.X*2, d.robotStart.Y)
-	moveRobot(newStart, d.directions, wideBoxes, wideWalls)
-	return sumGps(wideBoxes)
+	moveRobotAlt(newStart, d.directions, wh)
+	return sumGpsAlt(wh)
+}
+
+func biggerWarehouse(wh warehouse) warehouse {
+	bigger := make(warehouse)
+	for pos, t := range wh {
+		newPos := *graph.NewVector2(pos.X*2, pos.Y)
+		nextPos := *newPos.Add(direction.Right.Delta())
+		switch t.(type) {
+		case *wall:
+			bigger[newPos] = newWall(newPos)
+			bigger[nextPos] = newWall(nextPos)
+		case *box:
+			bb := newBigBox(newPos)
+			bigger[bb.l.position] = bb
+			bigger[bb.r.position] = bb
+		}
+	}
+	return bigger
 }
