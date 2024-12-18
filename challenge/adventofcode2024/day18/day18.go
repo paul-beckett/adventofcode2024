@@ -71,11 +71,20 @@ func (d *Day18) part1() int {
 }
 
 func (d *Day18) part2() string {
-	for i := 0; i < len(d.bytes); i++ {
-		minSteps := d.findPath(i)
-		if minSteps == -1 {
-			b := d.bytes[i-1]
+	low := 0
+	high := len(d.bytes)
+	for low < high {
+		mid := low + (high-low)/2
+		//looking for l has valid path, r does not
+		l := d.findPath(mid)
+		r := d.findPath(mid + 1)
+		if l != -1 && r == -1 {
+			b := d.bytes[mid]
 			return fmt.Sprintf("%d,%d", b.X, b.Y)
+		} else if r == -1 {
+			high = mid - 1
+		} else {
+			low = mid + 1
 		}
 	}
 	panic("no path breaker found")
