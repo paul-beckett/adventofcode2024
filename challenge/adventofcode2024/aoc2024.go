@@ -23,6 +23,7 @@ import (
 	"adventofcode2024/challenge/adventofcode2024/day20"
 	"adventofcode2024/challenge/adventofcode2024/day21"
 	"adventofcode2024/challenge/adventofcode2024/day22"
+	"adventofcode2024/challenge/adventofcode2024/day23"
 	"fmt"
 	"github.com/spf13/cobra"
 )
@@ -50,6 +51,7 @@ var subCommands = []*cobra.Command{
 	day20.NewCommand(),
 	day21.NewCommand(),
 	day22.NewCommand(),
+	day23.NewCommand(),
 }
 
 func NewCommand() *cobra.Command {
