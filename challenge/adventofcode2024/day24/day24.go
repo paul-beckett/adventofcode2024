@@ -123,6 +123,6 @@ func (d *Day24) part1() int {
 	return int(n)
 }
 
-func (d *Day24) part2() int {
-	panic("not implemented")
+func (d *Day24) part2() string {
+	return "*** no programmatic solution***"
 }
