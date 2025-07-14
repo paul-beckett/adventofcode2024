@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"adventofcode2024/challenge/adventofcode2017"
 	"adventofcode2024/challenge/adventofcode2023"
 	"adventofcode2024/challenge/adventofcode2024"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 )
 
 var subCommands = []*cobra.Command{
+	adventofcode2017.NewCommand(),
 	adventofcode2023.NewCommand(),
 	adventofcode2024.NewCommand(),
 }
