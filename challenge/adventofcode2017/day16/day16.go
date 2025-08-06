@@ -37,28 +37,50 @@ func (d *Day16) part1Size(size int) string {
 	for i := range size {
 		programs = append(programs, rune('a'+i))
 	}
+	return string(dance(programs, d.instructions))
+}
 
-	for _, instruction := range d.instructions {
+func dance(programs []rune, instructions []string) []rune {
+	var result []rune
+	result = append(result, programs...)
+	for _, instruction := range instructions {
 		if instruction[0] == 's' {
 			n, err := strconv.Atoi(instruction[1:])
 			if err != nil {
 				panic(err)
 			}
-			programs = spin(programs, n)
+			result = spin(result, n)
 		} else if instruction[0] == 'x' {
 			indices := ints.ToInts(instruction[1:], unicode.IsPunct)
-			swap(programs, indices[0], indices[1])
+			swap(result, indices[0], indices[1])
 		} else if instruction[0] == 'p' {
-			partner(programs, rune(instruction[1]), rune(instruction[3]))
+			partner(result, rune(instruction[1]), rune(instruction[3]))
 		}
 	}
-	return string(programs)
+	return result
 }
 
 func (d *Day16) part1() string {
 	return d.part1Size(16)
 }
 
-func (d *Day16) part2() int {
-	panic("not implemented")
+func (d *Day16) part2() string {
+	var programs []rune
+	for i := range 16 {
+		programs = append(programs, rune('a'+i))
+	}
+	seenAtIteration := make(map[string]int)
+	var iterations []string
+	runs := 1_000_000_000
+	for i := range runs {
+		s := string(programs)
+		_, exists := seenAtIteration[s] //loop seemed to start at zero so don't need to worry about offsets
+		if exists {
+			return iterations[runs%i]
+		}
+		programs = dance(programs, d.instructions)
+		seenAtIteration[s] = i
+		iterations = append(iterations, s)
+	}
+	return string(programs)
 }
