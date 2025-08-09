@@ -44,8 +44,14 @@ func TestPart2(t *testing.T) {
 	}{
 		{
 			name: "example 1",
-			data: ``,
-			want: -1},
+			data: `snd 1
+snd 2
+snd p
+rcv a
+rcv b
+rcv c
+rcv d`,
+			want: 3},
 	}
 
 	for _, testCase := range testCases {
