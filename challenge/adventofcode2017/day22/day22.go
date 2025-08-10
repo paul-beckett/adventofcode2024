@@ -50,7 +50,7 @@ const (
 	flagged
 )
 
-func (d nodeState) Next() nodeState {
+func (d nodeState) next() nodeState {
 	switch d {
 	case clean:
 		return weakened
@@ -92,7 +92,7 @@ func (d *Day22) part2() int {
 		case flagged:
 			dir = dir.Clockwise().Clockwise()
 		}
-		nextState := state.Next()
+		nextState := state.next()
 		if nextState == clean {
 			delete(cluster, *current)
 		} else {
